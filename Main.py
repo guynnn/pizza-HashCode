@@ -3,7 +3,8 @@ import numpy as np
 T = 'T'
 M = 'M'
 TAKEN = 'X'
-
+MAX_R = 5
+MAX_C = 5
 
 class Slice:
 
@@ -32,22 +33,8 @@ def is_legal(arr, L, H):
     return T_counter <= H and T_counter >= L and M_counter <= H and M_counter >= L
 
 
-def is_enough(arr, L):
-    T_counter = 0
-    M_counter = 0
-    for i in range(len(arr)):
-        for j in range(len(arr[0])):
-            if arr[i][j] == T:
-                T_counter += 1
-            elif arr[i][j] == M:
-                M_counter += 1
-            else:
-                return True
-    return T_counter >= L and M_counter >= L
-
-
 if __name__ == "__main__":
-    arr = parse("example.in")
+    arr = parse("small.in")
     numbers = arr[0].split(' ')
     arr = arr[1:]
     pizza = []
@@ -58,27 +45,41 @@ if __name__ == "__main__":
     L = int(numbers[2])
     H = int(numbers[3])
     pizza = np.array(pizza)
-    current = Slice(0, 0, pizza)
-    print("cur", current)
-    slices = [current]
-    loops = 0
-    while loops < 100:
-        loops += 1
-        current = Slice(current.next()[0], current.next()[1], pizza)
-        while current.r1 == -1:
-            if loops > 100:
-                break
-            loops += 1
-            guess1 = int(np.random.uniform(0, Slice.R + 1))
-            guess2 = int(np.random.uniform(0, Slice.C + 1))
-            current = Slice(guess1, guess2, pizza)
-        slices.append(current)
+
+    slices = []
+    indexes = np.zeros((R, C), dtype=np.bool)
+    r, c = 0, 0
+    indexes[0][0] = True
+    while True:
+        helper = np.zeros((MAX_R, MAX_C))
+        for i in range(R):
+            for j in range(C):
+                if r + i < R and c + j < C and is_legal(pizza[r + i:c + j], L, H):
+                    helper[i][j] = (i + 1) * (j + 1)
+        if not np.all(helper == 0):
+            maxi = 0, 0
+            maxe = 0
+            for i in range(MAX_R):
+                for j in range(MAX_C):
+                    if helper[i][j] > maxe:
+                        maxi = i, j
+                        maxe = helper[i][j]
+            slices.append(Slice(r, c, maxi[0], maxi[1]))
+            indexes[r + maxi[0]:c + maxi[1]] = True
+            pizza[r + maxi[0]:c + maxi[1]] = TAKEN
+
+
+        indexes[r][c] = True
+        if False not in indexes:
+            break
+        # next r and c:
+        left = np.where(indexes == False)
+        rand = np.random.choice(len(left[0]), 1)[0]
+        r = left[0][rand]
+        c = left[1][rand]
+
     summation = 0
     for slice in slices:
-        if slice.r1 != -1:
-            summation += len(slice)
-    print('L:', Slice.L, '\nH:', Slice.H)
+        summation += len(slice)
+        print(slice)
     print(summation)
-    for e in slices:
-        print(e)
-    print(pizza)
