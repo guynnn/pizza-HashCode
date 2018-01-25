@@ -8,13 +8,13 @@ MAX_C = 5
 
 class Slice:
 
-    def __init__(self, r, c, h, w):
-        self.r1 = r
-        self.c1 = c
-        self.r2 = r + w
-        self.c2 = c + h
+    def __init__(self, r1, c1, r2, c2):
+        self.r1 = r1
+        self.c1 = c1
+        self.r2 = r2
+        self.c2 = c2
 
-    def __len__(self):
+    def cells(self):
         return (self.r2 - self.r1 + 1) * (self.c2 - self.c1 + 1)
 
     def __str__(self):
@@ -34,7 +34,7 @@ def is_legal(arr, L, H):
 
 
 if __name__ == "__main__":
-    arr = parse("small.in")
+    arr = parse("medium.in")
     numbers = arr[0].split(' ')
     arr = arr[1:]
     pizza = []
@@ -45,16 +45,15 @@ if __name__ == "__main__":
     L = int(numbers[2])
     H = int(numbers[3])
     pizza = np.array(pizza)
-
     slices = []
     indexes = np.zeros((R, C), dtype=np.bool)
     r, c = 0, 0
     indexes[0][0] = True
     while True:
         helper = np.zeros((MAX_R, MAX_C))
-        for i in range(R):
-            for j in range(C):
-                if r + i < R and c + j < C and is_legal(pizza[r + i:c + j], L, H):
+        for i in range(MAX_R):
+            for j in range(MAX_C):
+                if r + i < R and c + j < C and is_legal(pizza[r:r + i + 1, c:c + j + 1], L, H):
                     helper[i][j] = (i + 1) * (j + 1)
         if not np.all(helper == 0):
             maxi = 0, 0
@@ -64,10 +63,9 @@ if __name__ == "__main__":
                     if helper[i][j] > maxe:
                         maxi = i, j
                         maxe = helper[i][j]
-            slices.append(Slice(r, c, maxi[0], maxi[1]))
-            indexes[r + maxi[0]:c + maxi[1]] = True
-            pizza[r + maxi[0]:c + maxi[1]] = TAKEN
-
+            slices.append(Slice(r, c, r + maxi[0], c + maxi[1]))
+            indexes[r:r + maxi[0] + 1, c:c + maxi[1] + 1] = True
+            pizza[r:r + maxi[0] + 1, c:c + maxi[1] + 1] = TAKEN
 
         indexes[r][c] = True
         if False not in indexes:
@@ -79,7 +77,9 @@ if __name__ == "__main__":
         c = left[1][rand]
 
     summation = 0
+    print(len(slices))
     for slice in slices:
-        summation += len(slice)
+        summation += slice.cells()
         print(slice)
+    print(pizza)
     print(summation)
