@@ -3,8 +3,9 @@ import numpy as np
 T = 'T'
 M = 'M'
 TAKEN = 'X'
-MAX_R = 10
-MAX_C = 10
+MAX_R = 14
+MAX_C = 14
+
 
 class Slice:
 
@@ -34,7 +35,7 @@ def is_legal(arr, L):
 
 
 if __name__ == "__main__":
-    arr = parse("medium.in")
+    arr = parse("example.in")
     numbers = arr[0].split(' ')
     arr = arr[1:]
     pizza = []
@@ -49,16 +50,12 @@ if __name__ == "__main__":
     indexes = np.zeros((R, C), dtype=np.bool)
     r, c = 0, 0
     indexes[0][0] = True
-    dir_x, dir_y = 1, 1
-    success = False
     while True:
         maxi = -1, -1
-        helper = np.zeros((MAX_R, MAX_C))
         for i in range(MAX_R):
             for j in range(MAX_C):
                 size = (i + 1) * (j + 1)
                 if r + i < R and c + j < C and is_legal(pizza[r:r + i + 1, c:c + j + 1], L) and size <= H:
-                    helper[i][j] = size
                     if size > (maxi[0 + 1]) * (maxi[1] + 1):
                         maxi = i, j
         if maxi != (-1, -1):
@@ -71,15 +68,13 @@ if __name__ == "__main__":
             break
 
         # better option for choosing r and c:
-
-
-
-
-        # choose next r and c:
-        left = np.where(indexes == False)
-        rand = np.random.choice(len(left[0]), 1)[0]
-        r = left[0][rand]
-        c = left[1][rand]
+        c = c + maxi[1] + 1
+        if c >= C or maxi == (-1, -1):
+            # choose next r and c:
+            left = np.where(indexes == False)
+            rand = np.random.choice(len(left[0]), 1)[0]
+            r = left[0][rand]
+            c = left[1][rand]
 
     summation = 0
     print(len(slices))
